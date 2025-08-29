@@ -106,7 +106,6 @@ public class GameBoard {
     //Return location corresponding to given mouseX, mouseY position
     //Null if position not on gameboard
     public Location getTileAt(int mouseX, int mouseY) {
-
         int coordX = (int) ((mouseX - 300) / 25);
         int coordY = (int) ((mouseY - 100) / 25);
 
@@ -115,8 +114,34 @@ public class GameBoard {
         }
         
         else {
-            return new Location(coordX, coordY);
+            return new Location(coordY, coordX);
         }
+    }
+
+    public void tileLeftClick(Location loc) {
+        if (loc != null) {
+            if(board[loc.getRow()][loc.getCol()] < 9)
+                board[loc.getRow()][loc.getCol()] += 10;
+            
+            if(board[loc.getRow()][loc.getCol()] > 19)
+                board[loc.getRow()][loc.getCol()] -= 10;
+        }
+    }
+
+    public void tileRightClick(Location loc) {
+        if (loc != null) {
+            if(board[loc.getRow()][loc.getCol()] < 9) { 
+                board[loc.getRow()][loc.getCol()] += 20;
+            }
+
+            else if(board[loc.getRow()][loc.getCol()] > 19) {
+                board[loc.getRow()][loc.getCol()] -= 20;
+            }
+        }
+    }
+
+    public void checkGame() {
+
     }
 
     public void draw(SpriteBatch spriteBatch) {
@@ -129,28 +154,6 @@ public class GameBoard {
                 //+10 to a tile that is uncovered
                 if (board[i][j] == 9)
                     spriteBatch.draw(bombTile, j*25 + xOffset, yOffset - i*25);
-
-                //Display all values REMOVE LATER
-                else if (board[i][j] == -1)
-                    spriteBatch.draw(bombTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 1)
-                    spriteBatch.draw(oneTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 2)
-                    spriteBatch.draw(twoTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 3)
-                    spriteBatch.draw(threeTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 4)
-                    spriteBatch.draw(fourTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 5)
-                    spriteBatch.draw(fiveTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 6)
-                    spriteBatch.draw(sixTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 7)
-                    spriteBatch.draw(sevenTile, j*25 + xOffset, yOffset - i*25);
-                else if (board[i][j] == 8)
-                    spriteBatch.draw(eightTile, j*25 + xOffset, yOffset - i*25);
-                
-
                 else if (board[i][j] == 10)
                     spriteBatch.draw(emptyFloorTile, j*25 + xOffset, yOffset - i*25);
                 else if (board[i][j] == 11)

@@ -1,5 +1,6 @@
 package com.metz;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -64,10 +65,10 @@ public class GamePlayScreen implements Screen {
     private void handlemouseClick() {
         //if there is a left/Right click, fires one time per click
         if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            System.out.println(gameBoard.getTileAt(Gdx.input.getX(), Gdx.input.getY()));
+            gameBoard.tileLeftClick(gameBoard.getTileAt(Gdx.input.getX(), Gdx.input.getY()));
         }
         if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
-            
+            gameBoard.tileRightClick(gameBoard.getTileAt(Gdx.input.getX(), Gdx.input.getY()));            
         }
     }
 
@@ -85,6 +86,7 @@ public class GamePlayScreen implements Screen {
             handlemouseClick();
 
             //process player input, A.I.
+            gameBoard.checkGame();
 
             //all drawings of shapes must go between begin/end
             shapeRenderer.begin();
