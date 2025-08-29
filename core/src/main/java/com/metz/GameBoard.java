@@ -84,22 +84,39 @@ public class GameBoard {
         }
     }
 
+    //precondition: location not a bomb
     private int countNeighbhors(int i, int j) {
         int count = 0;
 
         for (int k = i - 1; k <= i + 1; k++) {
             for (int l = j - 1; l <= j + 1; l++) {
-                if (checkInBounds(k, l) && !(k == i && l == j) && board[k][l] == BOMB) {
+                if (checkInBounds(k, l) && board[k][l] == BOMB) {
                     count++;
                 }
             }
         }
-                        
+
         return count;
     }
 
     private boolean checkInBounds(int i, int j) {
         return i >= 0 && j >= 0 && i < board.length && j < board[0].length;
+    }
+
+    //Return location corresponding to given mouseX, mouseY position
+    //Null if position not on gameboard
+    public Location getTileAt(int mouseX, int mouseY) {
+
+        int coordX = (int) ((mouseX - 300) / 25);
+        int coordY = (int) ((mouseY - 100) / 25);
+
+        if (coordX < 0 || coordY < 0 || coordY > board.length - 1 || coordX > board[0].length - 1) {
+            return null;
+        }
+        
+        else {
+            return new Location(coordX, coordY);
+        }
     }
 
     public void draw(SpriteBatch spriteBatch) {
@@ -113,6 +130,7 @@ public class GameBoard {
                 if (board[i][j] == 9)
                     spriteBatch.draw(bombTile, j*25 + xOffset, yOffset - i*25);
 
+                //Display all values REMOVE LATER
                 else if (board[i][j] == -1)
                     spriteBatch.draw(bombTile, j*25 + xOffset, yOffset - i*25);
                 else if (board[i][j] == 1)

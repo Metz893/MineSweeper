@@ -4,6 +4,10 @@ public class Location {
     private int row;
     private int col;
 
+    public Location (int i, int j) {
+        row = i;
+        col = j;
+    }
     public int getRow() {
         return row;
     }

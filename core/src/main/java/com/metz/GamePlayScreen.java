@@ -1,5 +1,7 @@
 package com.metz;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -59,6 +61,16 @@ public class GamePlayScreen implements Screen {
 
     }
 
+    private void handlemouseClick() {
+        //if there is a left/Right click, fires one time per click
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            System.out.println(gameBoard.getTileAt(Gdx.input.getX(), Gdx.input.getY()));
+        }
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+            
+        }
+    }
+
     /*
      * this method will run as fst as it can (or set to a set FPS)
      * repeatedly, constantly looped
@@ -70,6 +82,7 @@ public class GamePlayScreen implements Screen {
     @Override
     public void render(float delta) {
             //get player input
+            handlemouseClick();
 
             //process player input, A.I.
 
