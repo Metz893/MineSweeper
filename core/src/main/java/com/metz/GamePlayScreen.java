@@ -86,7 +86,6 @@ public class GamePlayScreen implements Screen {
             handlemouseClick();
 
             //process player input, A.I.
-            gameBoard.checkGame();
 
             //all drawings of shapes must go between begin/end
             shapeRenderer.begin();

@@ -126,6 +126,10 @@ public class GameBoard {
             if(board[loc.getRow()][loc.getCol()] > 19)
                 board[loc.getRow()][loc.getCol()] -= 10;
         }
+
+        if (loc != null && board[loc.getRow()][loc.getCol()] == 10){
+            openTiles(loc);
+        }
     }
 
     public void tileRightClick(Location loc) {
@@ -134,14 +138,35 @@ public class GameBoard {
                 board[loc.getRow()][loc.getCol()] += 20;
             }
 
-            else if(board[loc.getRow()][loc.getCol()] > 19) {
+            else if(board[loc.getRow()][loc.getCol()] >= 19) {
                 board[loc.getRow()][loc.getCol()] -= 20;
             }
         }
     }
 
-    public void checkGame() {
+    //opens all blank tiles
+    private void openTiles(Location loc) {
+        for (int k = loc.getRow() - 1; k <= loc.getRow() + 1; k++) {
+            for (int l = loc.getCol() - 1; l <= loc.getCol() + 1; l++) {
+                if (checkInBounds(k, l) && board[k][l] == 0 && (Math.abs(loc.getRow() - k) + Math.abs(loc.getCol() - l) == 1)) {
+                    board[k][l] += 10;
+                    openTiles(new Location(k, l));
+                }
+                else {
+                    displayNearby(loc);
+                }
+            }
+        }
+    }
 
+    private void displayNearby(Location loc) {
+        for (int k = loc.getRow() - 1; k <= loc.getRow() + 1; k++) {
+            for (int l = loc.getCol() - 1; l <= loc.getCol() + 1; l++) {
+                if (checkInBounds(k, l) && board[k][l] < 9 && board[k][l] > 0) {
+                    board[k][l] += 10;
+                }
+            }
+        }
     }
 
     public void draw(SpriteBatch spriteBatch) {
