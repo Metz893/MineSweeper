@@ -9,7 +9,8 @@ public class GameBoard {
     private int numFlags;//number of flags that still need to be placed
     public static final int BOMB = -1;//help with readability
     private GamePlayScreen gameScreen;
-
+    private boolean gameStart = true;
+    private boolean gameOver = false;
     //texture = 2D graphic
     private Texture emptyTile;
     private Texture emptyFloorTile;
@@ -29,21 +30,17 @@ public class GameBoard {
     public GameBoard (GamePlayScreen gameScreen) {
         this.gameScreen = gameScreen;
         board = new int[16][30];
-        numBombs = 50;
-        numFlags = numBombs;
+        numBombs = 100;
+        numFlags = 0;
         loadGraphics();
-        addBombs();
-        initBoardNumber();;
     }
 
     public GameBoard (GamePlayScreen gameScreen, int numRows, int numCols, int numBombs) {
         this.gameScreen = gameScreen;
         board = new int[numRows][numCols];
         this.numBombs = numBombs;
-        this.numFlags = this.numBombs;
+        this.numFlags = 0;
         loadGraphics();
-        addBombs();
-        initBoardNumber();
     }
 
     public void loadGraphics() {
@@ -61,16 +58,20 @@ public class GameBoard {
         flagTile = new Texture("assets/flagTile.jpg");
     }
 
-    public void addBombs() {
+    public void addBombs(int xOrigin, int yOrigin) {
+        int originNumBombs = numBombs;
+
         while (numBombs > 0) {
             int randomRow = (int) (Math.random() * board.length);
             int randomCol = (int) (Math.random() * board[0].length);
 
-            if (board[randomRow][randomCol] != -1) {
+            if (board[randomRow][randomCol] != -1 && (Math.abs(xOrigin - randomRow) + Math.abs(yOrigin - randomCol) > 2)) {
                 board[randomRow][randomCol] = -1;
                 numBombs -= 1;
             }
         }
+
+        numBombs = originNumBombs;
     }
 
     public void initBoardNumber() {
@@ -119,12 +120,21 @@ public class GameBoard {
     }
 
     public void tileLeftClick(Location loc) {
-        if (loc != null) {
+        if (gameStart) {
+            addBombs(loc.getRow(), loc.getCol());
+            initBoardNumber();
+            gameStart = false;
+        }
+
+        if (!gameOver && loc != null) {
             if(board[loc.getRow()][loc.getCol()] < 9)
                 board[loc.getRow()][loc.getCol()] += 10;
             
-            if(board[loc.getRow()][loc.getCol()] > 19)
+            else if(board[loc.getRow()][loc.getCol()] > 19)
                 board[loc.getRow()][loc.getCol()] -= 10;
+            
+            if (board[loc.getRow()][loc.getCol()] == 9) 
+                displayAllBombs(); 
         }
 
         if (loc != null && board[loc.getRow()][loc.getCol()] == 10){
@@ -133,13 +143,15 @@ public class GameBoard {
     }
 
     public void tileRightClick(Location loc) {
-        if (loc != null) {
+        if (!gameOver && loc != null) {
             if(board[loc.getRow()][loc.getCol()] < 9) { 
                 board[loc.getRow()][loc.getCol()] += 20;
+                numFlags += 1;
             }
 
             else if(board[loc.getRow()][loc.getCol()] >= 19) {
                 board[loc.getRow()][loc.getCol()] -= 20;
+                numFlags -= 1;
             }
         }
     }
@@ -167,6 +179,46 @@ public class GameBoard {
                 }
             }
         }
+    }
+
+    private void displayAllBombs() {
+        gameOver = true;
+
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j] == BOMB) {
+                    board[i][j] += 10;  
+                }
+            }
+        }
+    }
+
+    public void restart() {
+        clearBoard();
+        gameScreen.restartGameTimer();
+        gameStart = true;
+        numBombs = 100;
+        numFlags = 0;
+    }
+
+    private void clearBoard() {
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                board[i][j] = 0;  
+            }
+        }
+    }
+
+    public int getNumFlagsPlaced() {
+        return numFlags;
+    }
+
+    public int getTotalBombs() {
+        return numBombs;
+    }
+
+    public boolean getGameOver() {
+        return gameOver;
     }
 
     public void draw(SpriteBatch spriteBatch) {
@@ -207,8 +259,6 @@ public class GameBoard {
                     spriteBatch.draw(emptyTile, j*25 + xOffset, yOffset - i*25);
                 
             }
-
-            
         }
     }
 }

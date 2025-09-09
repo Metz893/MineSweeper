@@ -1,13 +1,17 @@
 package com.metz;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -27,7 +31,12 @@ public class GamePlayScreen implements Screen {
     private Viewport viewport;
 
     private GameBoard gameBoard;
+    private BitmapFont defaultFont = new BitmapFont();
 
+    private long gameTimer; //The game time counting up
+    private long startTime; //Time stamp of start of game
+
+    
     /*
      * Runs one time, at the very beginning
      * all set up should happen here
@@ -60,6 +69,8 @@ public class GamePlayScreen implements Screen {
 
         gameBoard = new GameBoard(this);
 
+        startTime = TimeUtils.nanoTime();
+
     }
 
     private void handlemouseClick() {
@@ -72,6 +83,34 @@ public class GamePlayScreen implements Screen {
         }
     }
 
+    private void handleButtonClicks() {
+        if (Gdx.input.isKeyJustPressed(Keys.SPACE)) {
+            gameBoard.restart();
+        }
+    }
+
+    //Draw Graphical User Interface
+    private void drawGUI() {
+        gameTimer = TimeUtils.nanoTime() - startTime;
+        defaultFont.draw(spriteBatch, "Time: " + (gameTimer) / 1_000_000_000 , 650, 650);
+        defaultFont.draw(spriteBatch, "Total Bombs Left: " + (gameBoard.getTotalBombs() - gameBoard.getNumFlagsPlaced()), 430, 650);
+        defaultFont.draw(spriteBatch, "Total Flags placed: " + gameBoard.getNumFlagsPlaced(), 770, 650);
+        defaultFont.draw(spriteBatch, "Press SPACE to restart", 590, 200);
+    }
+
+    private void drawGameOver() {
+        defaultFont.getData().setScale(5f); // make it 3x bigger
+        defaultFont.setColor(Color.RED);    // bright red
+        defaultFont.draw(spriteBatch, "GAME OVER" , 500, 425);
+        defaultFont.getData().setScale(1f); // make it 3x bigger
+        defaultFont.setColor(Color.WHITE);    // bright red
+    }
+
+    private void clearScreen () {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+    }
+
     /*
      * this method will run as fst as it can (or set to a set FPS)
      * repeatedly, constantly looped
@@ -82,19 +121,27 @@ public class GamePlayScreen implements Screen {
      */
     @Override
     public void render(float delta) {
-            //get player input
-            handlemouseClick();
+        //Clear screen before each game move
+        clearScreen();
 
-            //process player input, A.I.
+        //get player input
+        handlemouseClick();
+        handleButtonClicks();
 
-            //all drawings of shapes must go between begin/end
-            shapeRenderer.begin();
-            shapeRenderer.end();
+        //process player input, A.I.
 
-            //all drawing of graphics must be between being/end
-            spriteBatch.begin();
-            gameBoard.draw(spriteBatch);
-            spriteBatch.end();
+        //all drawings of shapes must go between begin/end
+        shapeRenderer.begin();
+        shapeRenderer.end();
+
+        //all drawing of graphics must be between being/end
+        spriteBatch.begin();
+        drawGUI();
+        gameBoard.draw(spriteBatch);
+        if (gameBoard.getGameOver()) {
+            drawGameOver();
+        }
+        spriteBatch.end();
     }
 
     @Override
@@ -121,6 +168,11 @@ public class GamePlayScreen implements Screen {
     public void dispose() {
         spriteBatch.dispose();
         shapeRenderer.dispose();
+    }
+
+  
+    public void restartGameTimer() {
+        startTime = TimeUtils.nanoTime();
     }
     
 }
