@@ -4,8 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -36,6 +36,9 @@ public class GamePlayScreen implements Screen {
     private long gameTimer; //The game time counting up
     private long startTime; //Time stamp of start of game
 
+    private Music music;
+    private Music loseMusic;
+    private Music winMusic;
     
     /*
      * Runs one time, at the very beginning
@@ -71,6 +74,16 @@ public class GamePlayScreen implements Screen {
 
         startTime = TimeUtils.nanoTime();
 
+        music = Gdx.audio.newMusic((Gdx.files.internal("Music.mp3")));
+        music.setLooping(true);
+
+        loseMusic = Gdx.audio.newMusic((Gdx.files.internal("lost.mp3")));
+        loseMusic.setLooping(false);
+        loseMusic.setVolume(0.75f);
+
+        winMusic = Gdx.audio.newMusic((Gdx.files.internal("win.mp3")));
+        winMusic.setLooping(false);
+        winMusic.setVolume(0.75f);
     }
 
     private void handlemouseClick() {
@@ -91,19 +104,30 @@ public class GamePlayScreen implements Screen {
 
     //Draw Graphical User Interface
     private void drawGUI() {
-        gameTimer = TimeUtils.nanoTime() - startTime;
-        defaultFont.draw(spriteBatch, "Time: " + (gameTimer) / 1_000_000_000 , 650, 650);
+        if (!gameBoard.getGameOver() && !gameBoard.getGameWon())
+            gameTimer = TimeUtils.nanoTime() - startTime;
+        defaultFont.draw(spriteBatch, "Time: " + (((gameTimer) / 100_000_000) / 10.) , 650, 650);
         defaultFont.draw(spriteBatch, "Total Bombs Left: " + (gameBoard.getTotalBombs() - gameBoard.getNumFlagsPlaced()), 430, 650);
         defaultFont.draw(spriteBatch, "Total Flags placed: " + gameBoard.getNumFlagsPlaced(), 770, 650);
         defaultFont.draw(spriteBatch, "Press SPACE to restart", 590, 200);
+        defaultFont.getData().setScale(3f); // make it 3x bigger
+        defaultFont.draw(spriteBatch, "Leaderboard", 30, 675);
+        defaultFont.getData().setScale(2f); // make it 3x bigger
+
+        for (int i = 0; i < LeaderBoard.getLeaderBoard().size(); i ++) {
+            if (i < 10)
+                defaultFont.draw(spriteBatch, i + 1 + ": " + LeaderBoard.getLeaderBoard().get(i), 80, 600 - i * 50);
+        }
+
+        defaultFont.getData().setScale(1f); // make it 3x bigger
     }
 
     private void drawGameOver() {
-        defaultFont.getData().setScale(5f); // make it 3x bigger
-        defaultFont.setColor(Color.RED);    // bright red
-        defaultFont.draw(spriteBatch, "GAME OVER" , 500, 425);
-        defaultFont.getData().setScale(1f); // make it 3x bigger
-        defaultFont.setColor(Color.WHITE);    // bright red
+        spriteBatch.draw(gameBoard.getgameoverGraphic(), 400,200);
+    }
+
+    private void drawgameWon() {
+        spriteBatch.draw(gameBoard.getWinGraphic(), 425,220);
     }
 
     private void clearScreen () {
@@ -141,7 +165,21 @@ public class GamePlayScreen implements Screen {
         if (gameBoard.getGameOver()) {
             drawGameOver();
         }
+
+        else if (gameBoard.getGameWon()) {
+            drawgameWon();
+        }
+
         spriteBatch.end();
+
+        if (!gameBoard.getGameWon() && !gameBoard.getGameOver()) {
+            loseMusic.stop();
+            winMusic.stop();
+            music.play();
+        }
+        else {
+            music.pause();
+        }
     }
 
     @Override
@@ -173,6 +211,19 @@ public class GamePlayScreen implements Screen {
   
     public void restartGameTimer() {
         startTime = TimeUtils.nanoTime();
+    }
+
+    public double getExactTime() {
+        return ((gameTimer) / 100_000_000) / 10.;
+    }
+
+    public Music getLoseMusic () {
+        return loseMusic;
+    }
+
+
+    public Music getwinMusic () {
+        return winMusic;
     }
     
 }

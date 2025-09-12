@@ -6,11 +6,15 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 public class GameBoard {
     private int [][] board; //data structure
     private int numBombs;//number of bombs
+    private int numBombOriginal = 1;
     private int numFlags;//number of flags that still need to be placed
     public static final int BOMB = -1;//help with readability
     private GamePlayScreen gameScreen;
     private boolean gameStart = true;
     private boolean gameOver = false;
+    private boolean gameWon = false;
+    private LeaderBoard leaders;
+
     //texture = 2D graphic
     private Texture emptyTile;
     private Texture emptyFloorTile;
@@ -24,14 +28,17 @@ public class GameBoard {
     private Texture eightTile;
     private Texture bombTile; 
     private Texture flagTile;
+    private Texture gameover2;
+    private Texture win;
 
 
 
     public GameBoard (GamePlayScreen gameScreen) {
         this.gameScreen = gameScreen;
         board = new int[16][30];
-        numBombs = 100;
+        numBombs = 1;
         numFlags = 0;
+        leaders = new LeaderBoard();
         loadGraphics();
     }
 
@@ -40,6 +47,7 @@ public class GameBoard {
         board = new int[numRows][numCols];
         this.numBombs = numBombs;
         this.numFlags = 0;
+        LeaderBoard leaders = new LeaderBoard();
         loadGraphics();
     }
 
@@ -56,6 +64,8 @@ public class GameBoard {
         eightTile = new Texture("assets/eightTile.jpg");
         bombTile = new Texture("assets/bomb.jpg");
         flagTile = new Texture("assets/flagTile.jpg");
+        gameover2 = new Texture("assets/gameover4.jpg");
+        win = new Texture("assets/win.jpg");
     }
 
     public void addBombs(int xOrigin, int yOrigin) {
@@ -120,13 +130,13 @@ public class GameBoard {
     }
 
     public void tileLeftClick(Location loc) {
-        if (gameStart) {
+        if (gameStart && loc != null) {
             addBombs(loc.getRow(), loc.getCol());
             initBoardNumber();
             gameStart = false;
         }
 
-        if (!gameOver && loc != null) {
+        if (!gameOver && !gameWon && loc != null) {
             if(board[loc.getRow()][loc.getCol()] < 9)
                 board[loc.getRow()][loc.getCol()] += 10;
             
@@ -143,7 +153,7 @@ public class GameBoard {
     }
 
     public void tileRightClick(Location loc) {
-        if (!gameOver && loc != null) {
+        if (!gameOver && !gameWon && loc != null) {
             if(board[loc.getRow()][loc.getCol()] < 9) { 
                 board[loc.getRow()][loc.getCol()] += 20;
                 numFlags += 1;
@@ -154,6 +164,22 @@ public class GameBoard {
                 numFlags -= 1;
             }
         }
+
+        if (gameStart) {
+            return;
+        }
+        
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j] == -1) {
+                    return;
+                }
+            }
+        }
+
+        gameWon = true;
+        gameScreen.getwinMusic().play();
+        scoreUpdate(gameScreen.getExactTime());
     }
 
     //opens all blank tiles
@@ -182,6 +208,8 @@ public class GameBoard {
     }
 
     private void displayAllBombs() {
+        gameScreen.getLoseMusic().play();
+
         gameOver = true;
 
         for (int i = 0; i < board.length; i++) {
@@ -197,7 +225,9 @@ public class GameBoard {
         clearBoard();
         gameScreen.restartGameTimer();
         gameStart = true;
-        numBombs = 100;
+        gameOver = false;
+        gameWon  = false;
+        numBombs = numBombOriginal;
         numFlags = 0;
     }
 
@@ -207,6 +237,10 @@ public class GameBoard {
                 board[i][j] = 0;  
             }
         }
+    }
+
+    private void scoreUpdate(double score) {
+        leaders.add(score);
     }
 
     public int getNumFlagsPlaced() {
@@ -219,6 +253,18 @@ public class GameBoard {
 
     public boolean getGameOver() {
         return gameOver;
+    }
+
+    public boolean getGameWon() {
+        return gameWon;
+    }
+
+    public Texture getgameoverGraphic() {
+        return gameover2;
+    }
+
+    public Texture getWinGraphic() {
+        return win;
     }
 
     public void draw(SpriteBatch spriteBatch) {
